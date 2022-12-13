@@ -1,7 +1,6 @@
 # AODF
 
-Source code for research paper:
-> Filtering methods for asymmetric ODFs: Where and how asymmetry occurs in the white matter
+GPU-accelerated implementation of ODF filtering algorithm for asymmetric ODF estimation in diffusion MRI.
 
 ## Installation
 
