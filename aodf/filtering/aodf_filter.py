@@ -3,7 +3,7 @@ from dipy.data import get_sphere
 from dipy.reconst.shm import sh_to_sf_matrix
 import numpy as np
 from numba import njit
-from aodf.scilpy.gpuparallel.opencl_utils import CLManager, CLKernel
+from scilpy.gpuparallel.opencl_utils import CLManager, CLKernel
 from itertools import product as iterprod
 import logging
 
