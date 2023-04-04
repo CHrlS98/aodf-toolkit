@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Copy of the module scilpy.gpuparallel.opencl_utils.py.
+"""
 import numpy as np
 import inspect
 import os

@@ -13,8 +13,8 @@ import numpy as np
 
 from dipy.data import SPHERE_FILES, get_sphere
 from dipy.reconst.shm import sph_harm_ind_list, sh_to_sf
-from aodf.io.utils import get_sh_order_and_fullness
-from aodf.io.utils import (assert_inputs_exist, assert_outputs_exist)
+from aodf.scilpy.io.utils import get_sh_order_and_fullness
+from aodf.scilpy.io.utils import assert_inputs_exist, assert_outputs_exist
 from aodf.filtering.aodf_filter import AsymmetricFilter
 
 
@@ -131,12 +131,12 @@ def main():
     logging.info('Elapsed time (s): {0}'.format(t1 - t0))
 
     logging.info('Saving filtered SH to file {0}.'.format(args.out_sh))
-    nib.save(nib.Nifti1Image(asym_sh, sh_img.affine), args.out_sh)
+    nib.save(nib.Nifti1Image(asym_sh.astype(np.float32), sh_img.affine), args.out_sh)
 
     if args.out_sym:
         _, orders = sph_harm_ind_list(sh_order, full_basis=True)
         logging.info('Saving symmetric SH to file {0}.'.format(args.out_sym))
-        nib.save(nib.Nifti1Image(asym_sh[..., orders % 2 == 0], sh_img.affine),
+        nib.save(nib.Nifti1Image(asym_sh[..., orders % 2 == 0].astype(np.float32), sh_img.affine),
                  args.out_sym)
 
 
