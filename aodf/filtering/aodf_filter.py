@@ -9,12 +9,13 @@ import logging
 
 
 class AsymmetricFilter():
-    def __init__(self, sh_order, sh_basis, full_basis,
+    def __init__(self, sh_order, sh_basis, legacy, full_basis,
                  sphere_str, sigma_spatial, sigma_align,
                  sigma_angle, sigma_range, exclude_self=False,
                  disable_spatial=False, disable_align=False,
                  disable_angle=False, disable_range=False):
         self.sh_order = sh_order
+        self.legacy = legacy
         self.basis = sh_basis
         self.full_basis = full_basis
         self.sphere = get_sphere(sphere_str)
@@ -37,9 +38,10 @@ class AsymmetricFilter():
 
         self.B = sh_to_sf_matrix(self.sphere, self.sh_order,
                                  self.basis, self.full_basis,
-                                 return_inv=False)
+                                 legacy=self.legacy, return_inv=False)
         _, self.B_inv = sh_to_sf_matrix(self.sphere, self.sh_order,
-                                        self.basis, True, return_inv=True)
+                                        self.basis, True, legacy=self.legacy,
+                                        return_inv=True)
 
         # initialize gpu
         self.cl_kernel = None
