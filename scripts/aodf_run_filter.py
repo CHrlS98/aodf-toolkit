@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script to compute asymmetric ODF from filtering.
+Script to compute asymmetric ODF from filtering. Filtering is accelerated
+with numba and opencl for python.
 
-Filtering is accelerated with numba and opencl.
+The script supports any spherical signal expressed as a series of
+spherical harmonics (SH) coefficients. For an explanation of the available SH
+bases, refer to the DIPY documentation (https://dipy.org/documentation/1.4.0./theory/sh_basis/).
 """
 import argparse
 import logging
@@ -28,8 +31,9 @@ def _build_arg_parser():
     p.add_argument('out_sh',
                    help='File name for averaged signal.')
 
-    p.add_argument('--sh_basis', default='descoteaux07',
-                   choices=['tournier07', 'descoteaux07'],
+    p.add_argument('--sh_basis', default='descoteaux07_legacy',
+                   choices=['tournier07', 'descoteaux07',
+                            'tournier07_legacy', 'descoteaux07_legacy'],
                    help='SH basis used for signal representation.'
                         ' [%(default)s]')
 
@@ -82,6 +86,12 @@ def _build_arg_parser():
     return p
 
 
+def _parse_sh_basis(sh_basis_name):
+    basis = 'descoteaux07' if 'descoteaux07' in sh_basis_name else 'tournier07'
+    legacy = 'legacy' in sh_basis_name
+    return basis, legacy
+
+
 def get_sf_range(data, sh_order, full_basis, sphere_name):
     hemi = get_sphere(sphere_name)
     sf = np.array([sh_to_sf(sh, hemi, sh_order, full_basis=full_basis)
@@ -108,14 +118,16 @@ def main():
     data = sh_img.get_fdata(dtype=np.float32)
     sh_order, full_basis = get_sh_order_and_fullness(data.shape[-1])
 
+    sh_basis, legacy = _parse_sh_basis(args.sh_basis)
+
     sigma_range = args.sigma_range
     if not args.disable_range:
         vrange = get_sf_range(data, sh_order, full_basis, args.sphere)
         sigma_range = args.sigma_range * vrange
 
     t0 = time.perf_counter()
-    logging.info('Executing angle-aware bilateral filtering.')
-    asym_filter = AsymmetricFilter(sh_order, args.sh_basis,
+    logging.info('Executing asymmetric filtering.')
+    asym_filter = AsymmetricFilter(sh_order, sh_basis, legacy,
                                    full_basis, sphere_str=args.sphere,
                                    sigma_spatial=args.sigma_spatial,
                                    sigma_align=args.sigma_align,
