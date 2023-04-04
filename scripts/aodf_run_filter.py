@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script to compute asymmetric ODF from filtering. Filtering is accelerated
-with numba and opencl for python.
+Script to compute asymmetric ODF by filtering an input symmetric ODF image.
+The filtering is accelerated with numba and opencl for python.
 
-The script supports any spherical signal expressed as a series of
-spherical harmonics (SH) coefficients. For an explanation of the available SH
-bases, refer to the DIPY documentation (https://dipy.org/documentation/1.4.0./theory/sh_basis/).
+The script supports any spherical signal expressed as a series of spherical
+harmonics (SH) coefficients. For an explanation of the available SH bases, refer
+to the DIPY documentation (https://dipy.org/documentation/1.4.0./theory/sh_basis/).
 """
 import argparse
 import logging
@@ -93,8 +93,8 @@ def _parse_sh_basis(sh_basis_name):
 
 
 def get_sf_range(data, sh_order, full_basis, sphere_name):
-    hemi = get_sphere(sphere_name)
-    sf = np.array([sh_to_sf(sh, hemi, sh_order, full_basis=full_basis)
+    sphere = get_sphere(sphere_name)
+    sf = np.array([sh_to_sf(sh, sphere, sh_order, full_basis=full_basis)
                    for sh in data], dtype=np.float32)
     vrange = np.max(sf) - np.min(sf)
     return vrange
@@ -154,5 +154,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
