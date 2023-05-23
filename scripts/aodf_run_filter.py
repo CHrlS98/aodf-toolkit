@@ -7,6 +7,8 @@ The filtering is accelerated with numba and opencl for python.
 The script supports any spherical signal expressed as a series of spherical
 harmonics (SH) coefficients. For an explanation of the available SH bases, refer
 to the DIPY documentation (https://dipy.org/documentation/1.4.0./theory/sh_basis/).
+
+See [1] for a detailed description of the filtering parameters.
 """
 import argparse
 import logging
@@ -21,9 +23,18 @@ from scilpy.io.utils import (get_sh_order_and_fullness, assert_inputs_exist,
 from aodf.filtering.aodf_filter import AsymmetricFilter
 
 
+EPILOG="""
+[1] Poirier, C. and Descoteaux, M. "A Unified Filtering Method for
+    Estimating Asymmetric Orientation Distribution Functions: Where
+    and How Asymmetry Occurs in the Brain", bioRxiv 2022.12.18.520881;
+    doi: https://doi.org/10.1101/2022.12.18.520881 
+"""
+
+
 def _build_arg_parser():
     p = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter,
+        epilog=EPILOG)
 
     p.add_argument('in_sh',
                    help='Path to the input file.')
@@ -61,9 +72,6 @@ def _build_arg_parser():
                    help='Standard deviation for range regularizer\n'
                         '**given as a ratio of the range of SF amplitudes \n'
                         'in the image**. [%(default)s]')
-
-    p.add_argument('--exclude_self', action='store_true',
-                   help='Exclude current voxel from neighbours.')
 
     p.add_argument('--disable_spatial', action='store_true',
                    help='Disable spatial filter.')
@@ -133,7 +141,6 @@ def main():
                                    sigma_align=args.sigma_align,
                                    sigma_angle=args.sigma_angle,
                                    sigma_range=sigma_range,
-                                   exclude_self=args.exclude_self,
                                    disable_spatial=args.disable_spatial,
                                    disable_align=args.disable_align,
                                    disable_angle=args.disable_angle,

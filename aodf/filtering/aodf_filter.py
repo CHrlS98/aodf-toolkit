@@ -11,9 +11,9 @@ import logging
 class AsymmetricFilter():
     def __init__(self, sh_order, sh_basis, legacy, full_basis,
                  sphere_str, sigma_spatial, sigma_align,
-                 sigma_angle, sigma_range, exclude_self=False,
-                 disable_spatial=False, disable_align=False,
-                 disable_angle=False, disable_range=False):
+                 sigma_angle, sigma_range, disable_spatial=False,
+                 disable_align=False, disable_angle=False,
+                 disable_range=False):
         self.sh_order = sh_order
         self.legacy = legacy
         self.basis = sh_basis
@@ -23,7 +23,6 @@ class AsymmetricFilter():
         self.sigma_align = sigma_align
         self.sigma_angle = sigma_angle
         self.sigma_range = sigma_range
-        self.exclude_self = exclude_self
         self.disable_range = disable_range
         self.disable_angle = disable_angle
 
@@ -55,8 +54,6 @@ class AsymmetricFilter():
         self.cl_kernel.set_define('SIGMA_RANGE',
                                   '{}f'.format(self.sigma_range))
         self.cl_kernel.set_define('N_DIRS', len(self.sphere.vertices))
-        self.cl_kernel.set_define('EXCLUDE_SELF', 'true' if self.exclude_self
-                                                  else 'false')
         self.cl_kernel.set_define('DISABLE_ANGLE', 'true' if self.disable_angle
                                                    else 'false')
         self.cl_kernel.set_define('DISABLE_RANGE', 'true' if self.disable_range

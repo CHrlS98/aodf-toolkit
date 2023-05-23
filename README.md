@@ -3,7 +3,7 @@
 GPU-accelerated python implementation of ODF filtering algorithm for asymmetric ODF estimation in diffusion MRI.
 
 ## Installation
-The application can be installed using `pip`.
+The application can be installed using `pip`. The application is tested with `python 3.10`. We recommend installing the application inside a virtual environment (see python `venv` instructions [here](https://docs.python.org/3/library/venv.html)).
 
 ```
 pip install -e .
