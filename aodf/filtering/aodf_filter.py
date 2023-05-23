@@ -112,7 +112,7 @@ class AsymmetricFilter():
             sh_patch = sh_data[patch_in[0, 0]:patch_in[0, 1],
                                patch_in[1, 0]:patch_in[1, 1],
                                patch_in[2, 0]:patch_in[2, 1]]
-            # print(patch_in, sh_patch.shape)
+
             sf_patch = np.dot(sh_patch, self.B)
             self.cl_manager.update_input_buffer("sf_data", sf_patch)
             self.cl_manager.update_output_buffer("out_sf", out_shape)
@@ -131,7 +131,6 @@ def _build_uv_filter(directions, sigma_angle):
     uv_weights = np.zeros((len(directions), len(directions)), dtype=np.float32)
 
     # 1. precompute weights on angle
-    # c'est toujours les mêmes peu importe le voxel en question
     for u_i, u in enumerate(directions):
         uvec = np.reshape(np.ascontiguousarray(u), (1, 3))
         weights = np.arccos(np.clip(np.dot(uvec, directions.T), -1.0, 1.0))
@@ -178,7 +177,6 @@ def _build_nx_filter(directions, sigma_spatial, sigma_align,
                 nx_weights[half_width + i, half_width + j, half_width + k] =\
                     w_align * w_spatial
 
-    # sur chaque u, le filtre doit sommer à 1
     for ui in range(len(directions)):
         w_sum = np.sum(nx_weights[..., ui])
         nx_weights /= w_sum
