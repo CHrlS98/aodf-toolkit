@@ -16,8 +16,8 @@ import numpy as np
 
 from dipy.data import SPHERE_FILES, get_sphere
 from dipy.reconst.shm import sph_harm_ind_list, sh_to_sf
-from scilpy.io.utils import get_sh_order_and_fullness
-from scilpy.io.utils import assert_inputs_exist, assert_outputs_exist
+from scilpy.io.utils import (get_sh_order_and_fullness, assert_inputs_exist,
+                             assert_outputs_exist)
 from aodf.filtering.aodf_filter import AsymmetricFilter
 
 
