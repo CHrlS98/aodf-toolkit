@@ -68,12 +68,6 @@ __kernel void filter(__global const float* sf_data,
                 {
                     for(int hk = 0; hk < WIN_WIDTH; ++hk)
                     {
-#if EXCLUDE_SELF
-                        if(hi == win_hwidth && hj == win_hwidth && win_hwidth == hk)
-                        {
-                            continue;
-                        }
-#endif
                         const int yvi_flat_ind =
                             get_flat_index(x_ind + hi, y_ind + hj,
                                            z_ind + hk, vi, x_pad_len,

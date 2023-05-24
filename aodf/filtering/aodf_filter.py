@@ -11,9 +11,9 @@ import logging
 class AsymmetricFilter():
     def __init__(self, sh_order, sh_basis, legacy, full_basis,
                  sphere_str, sigma_spatial, sigma_align,
-                 sigma_angle, sigma_range, exclude_self=False,
-                 disable_spatial=False, disable_align=False,
-                 disable_angle=False, disable_range=False):
+                 sigma_angle, sigma_range, disable_spatial=False,
+                 disable_align=False, disable_angle=False,
+                 disable_range=False):
         self.sh_order = sh_order
         self.legacy = legacy
         self.basis = sh_basis
@@ -23,7 +23,6 @@ class AsymmetricFilter():
         self.sigma_align = sigma_align
         self.sigma_angle = sigma_angle
         self.sigma_range = sigma_range
-        self.exclude_self = exclude_self
         self.disable_range = disable_range
         self.disable_angle = disable_angle
 
@@ -55,8 +54,6 @@ class AsymmetricFilter():
         self.cl_kernel.set_define('SIGMA_RANGE',
                                   '{}f'.format(self.sigma_range))
         self.cl_kernel.set_define('N_DIRS', len(self.sphere.vertices))
-        self.cl_kernel.set_define('EXCLUDE_SELF', 'true' if self.exclude_self
-                                                  else 'false')
         self.cl_kernel.set_define('DISABLE_ANGLE', 'true' if self.disable_angle
                                                    else 'false')
         self.cl_kernel.set_define('DISABLE_RANGE', 'true' if self.disable_range
@@ -112,7 +109,7 @@ class AsymmetricFilter():
             sh_patch = sh_data[patch_in[0, 0]:patch_in[0, 1],
                                patch_in[1, 0]:patch_in[1, 1],
                                patch_in[2, 0]:patch_in[2, 1]]
-            # print(patch_in, sh_patch.shape)
+
             sf_patch = np.dot(sh_patch, self.B)
             self.cl_manager.update_input_buffer("sf_data", sf_patch)
             self.cl_manager.update_output_buffer("out_sf", out_shape)
@@ -131,7 +128,6 @@ def _build_uv_filter(directions, sigma_angle):
     uv_weights = np.zeros((len(directions), len(directions)), dtype=np.float32)
 
     # 1. precompute weights on angle
-    # c'est toujours les mêmes peu importe le voxel en question
     for u_i, u in enumerate(directions):
         uvec = np.reshape(np.ascontiguousarray(u), (1, 3))
         weights = np.arccos(np.clip(np.dot(uvec, directions.T), -1.0, 1.0))
@@ -178,7 +174,6 @@ def _build_nx_filter(directions, sigma_spatial, sigma_align,
                 nx_weights[half_width + i, half_width + j, half_width + k] =\
                     w_align * w_spatial
 
-    # sur chaque u, le filtre doit sommer à 1
     for ui in range(len(directions)):
         w_sum = np.sum(nx_weights[..., ui])
         nx_weights /= w_sum
