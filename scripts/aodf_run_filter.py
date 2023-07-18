@@ -85,6 +85,14 @@ def _build_arg_parser():
     p.add_argument('--disable_range', action='store_true',
                    help='Disable range filter.')
 
+    p.add_argument('--patch_size', type=int, default=40,
+                   help='Image is processed by batches of '
+                        'patch_size**3 voxels. [%(default)s]')
+    
+    p.add_argument('--device_type', choices=['cpu', 'gpu'], default='gpu',
+                   help='Device where the filtering is executed. '
+                        '[%(default)s]')
+
     p.add_argument('-v', action='store_true', dest='verbose',
                    help='If set, produces verbose output.')
 
@@ -144,8 +152,9 @@ def main():
                                    disable_spatial=args.disable_spatial,
                                    disable_align=args.disable_align,
                                    disable_angle=args.disable_angle,
-                                   disable_range=args.disable_range)
-    asym_sh = asym_filter(data)
+                                   disable_range=args.disable_range,
+                                   device_type=args.device_type)
+    asym_sh = asym_filter(data, args.patch_size)
     t1 = time.perf_counter()
     logging.info('Elapsed time (s): {0}'.format(t1 - t0))
 

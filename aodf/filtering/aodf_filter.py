@@ -13,7 +13,7 @@ class AsymmetricFilter():
                  sphere_str, sigma_spatial, sigma_align,
                  sigma_angle, sigma_range, disable_spatial=False,
                  disable_align=False, disable_angle=False,
-                 disable_range=False):
+                 disable_range=False, device_type='gpu'):
         self.sh_order = sh_order
         self.legacy = legacy
         self.basis = sh_basis
@@ -25,6 +25,7 @@ class AsymmetricFilter():
         self.sigma_range = sigma_range
         self.disable_range = disable_range
         self.disable_angle = disable_angle
+        self.device_type = device_type
 
         # won't need this if disable range
         self.uv_filter = _build_uv_filter(self.sphere.vertices,
@@ -59,7 +60,7 @@ class AsymmetricFilter():
                                                    else 'false')
         self.cl_kernel.set_define('DISABLE_RANGE', 'true' if self.disable_range
                                                    else 'false')
-        self.cl_manager = CLManager(self.cl_kernel)
+        self.cl_manager = CLManager(self.cl_kernel, self.device_type)
 
     def __call__(self, sh_data, patch_size=40):
         uv_weights_offsets =\
