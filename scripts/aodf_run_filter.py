@@ -16,11 +16,13 @@ import time
 import nibabel as nib
 import numpy as np
 
-from dipy.data import SPHERE_FILES, get_sphere
-from dipy.reconst.shm import sph_harm_ind_list, sh_to_sf
+from dipy.data import SPHERE_FILES
+
+from dipy.reconst.shm import sph_harm_ind_list
 from scilpy.io.utils import (get_sh_order_and_fullness, assert_inputs_exist,
                              assert_outputs_exist)
 from aodf.filtering.aodf_filter import AsymmetricFilter
+from aodf.filtering.utils import get_sf_range, parse_sh_basis, add_sh_basis_arg
 
 
 EPILOG="""
@@ -42,11 +44,7 @@ def _build_arg_parser():
     p.add_argument('out_sh',
                    help='File name for averaged signal.')
 
-    p.add_argument('--sh_basis', default='descoteaux07_legacy',
-                   choices=['tournier07', 'descoteaux07',
-                            'tournier07_legacy', 'descoteaux07_legacy'],
-                   help='SH basis used for signal representation.'
-                        ' [%(default)s]')
+    add_sh_basis_arg(p)
 
     p.add_argument('--out_sym', default=None,
                    help='Name of optional symmetric output. [%(default)s]')
@@ -85,6 +83,9 @@ def _build_arg_parser():
     p.add_argument('--disable_range', action='store_true',
                    help='Disable range filter.')
 
+    p.add_argument('--include_center', action='store_true',
+                   help='Weight-in the SF amplitudes of the center voxel.')
+
     p.add_argument('--patch_size', type=int, default=40,
                    help='Image is processed by batches of '
                         'patch_size**3 voxels. [%(default)s]')
@@ -100,20 +101,6 @@ def _build_arg_parser():
                    help='Force overwriting of the output files.')
 
     return p
-
-
-def _parse_sh_basis(sh_basis_name):
-    basis = 'descoteaux07' if 'descoteaux07' in sh_basis_name else 'tournier07'
-    legacy = 'legacy' in sh_basis_name
-    return basis, legacy
-
-
-def get_sf_range(data, sh_order, full_basis, sphere_name):
-    sphere = get_sphere(sphere_name)
-    sf = np.array([sh_to_sf(sh, sphere, sh_order, full_basis=full_basis)
-                   for sh in data], dtype=np.float32)
-    vrange = np.max(sf) - np.min(sf)
-    return vrange
 
 
 def main():
@@ -134,7 +121,7 @@ def main():
     data = sh_img.get_fdata(dtype=np.float32)
     sh_order, full_basis = get_sh_order_and_fullness(data.shape[-1])
 
-    sh_basis, legacy = _parse_sh_basis(args.sh_basis)
+    sh_basis, legacy = parse_sh_basis(args.sh_basis)
 
     sigma_range = args.sigma_range
     if not args.disable_range:
@@ -153,7 +140,8 @@ def main():
                                    disable_align=args.disable_align,
                                    disable_angle=args.disable_angle,
                                    disable_range=args.disable_range,
-                                   device_type=args.device_type)
+                                   device_type=args.device_type,
+                                   j_invariance=not(args.include_center))
     asym_sh = asym_filter(data, args.patch_size)
     t1 = time.perf_counter()
     logging.info('Elapsed time (s): {0}'.format(t1 - t0))

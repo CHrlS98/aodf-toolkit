@@ -92,3 +92,45 @@ def assert_outputs_exist(parser, args, required, optional=None,
     for optional_file in optional or []:
         if optional_file:
             check(optional_file)
+
+
+def add_overwrite_arg(parser):
+    parser.add_argument(
+        '-f', dest='overwrite', action='store_true',
+        help='Force overwriting of the output files.')
+
+
+def add_processes_arg(parser):
+    parser.add_argument('--processes', dest='nbr_processes',
+                        metavar='NBR', type=int, default=1,
+                        help='Number of sub-processes to start. \n'
+                        'Default: [%(default)s]')
+
+
+def add_sh_basis_args(parser, mandatory=False):
+    """Add spherical harmonics (SH) bases argument.
+
+    Parameters
+    ----------
+    parser: argparse.ArgumentParser object
+        Parser.
+    mandatory: bool
+        Whether this argument is mandatory.
+    """
+    choices = ['descoteaux07', 'tournier07']
+    def_val = 'descoteaux07'
+    help_msg = 'Spherical harmonics basis used for the SH coefficients.\nMust ' +\
+               'be either \'descoteaux07\' or \'tournier07\' [%(default)s]:\n' +\
+               '    \'descoteaux07\': SH basis from the Descoteaux et al.\n' +\
+               '                      MRM 2007 paper\n' +\
+               '    \'tournier07\'  : SH basis from the Tournier et al.\n' +\
+               '                      NeuroImage 2007 paper.'
+
+    if mandatory:
+        arg_name = 'sh_basis'
+    else:
+        arg_name = '--sh_basis'
+
+    parser.add_argument(arg_name,
+                        choices=choices, default=def_val,
+                        help=help_msg)
