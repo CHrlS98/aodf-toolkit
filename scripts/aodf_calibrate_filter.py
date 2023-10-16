@@ -146,12 +146,13 @@ def main():
     if not legacy:
         parser.error('Modern SH bases not supported yet. Use a legacy SH basis.')
 
+    # TODO: These values should be set by argparser
     tested_sigmas = {
         'spatial':[1.0, 1.2, 1.4, 1.6, 1.8],
         'align': [0.4, 0.6, 0.8, 1.0, 1.2],
         'range': [0.2, 1.0, None],
         'angle': [None, 0.1, 0.2],
-        'channel_axis': [-1]
+        'channel_axis': [-1] # TODO: Remove. This was useful when using skimage.
     }
 
     # crop the data and add padding by maximum filter width
