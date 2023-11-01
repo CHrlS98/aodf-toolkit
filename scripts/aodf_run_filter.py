@@ -86,9 +86,9 @@ def _build_arg_parser():
     p.add_argument('--include_center', action='store_true',
                    help='Weight-in the SF amplitudes of the center voxel.')
 
-    p.add_argument('--patch_size', type=int, default=40,
+    p.add_argument('--batch_size', type=int, default=40,
                    help='Image is processed by batches of '
-                        'patch_size**3 voxels. [%(default)s]')
+                        'batch_size**3 voxels. [%(default)s]')
     
     p.add_argument('--device_type', choices=['cpu', 'gpu'], default='gpu',
                    help='Device where the filtering is executed. '
@@ -142,7 +142,7 @@ def main():
                                    disable_range=args.disable_range,
                                    device_type=args.device_type,
                                    j_invariance=not(args.include_center))
-    asym_sh = asym_filter(data, args.patch_size)
+    asym_sh = asym_filter(data, args.batch_size)
     t1 = time.perf_counter()
     logging.info('Elapsed time (s): {0}'.format(t1 - t0))
 
