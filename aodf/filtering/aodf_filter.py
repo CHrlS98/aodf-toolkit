@@ -13,7 +13,8 @@ class AsymmetricFilter():
                  sphere_str, sigma_spatial, sigma_align,
                  sigma_angle, sigma_range, disable_spatial=False,
                  disable_align=False, disable_angle=False,
-                 disable_range=False):
+                 disable_range=False, device_type='gpu',
+                 j_invariance=False):
         self.sh_order = sh_order
         self.legacy = legacy
         self.basis = sh_basis
@@ -25,14 +26,16 @@ class AsymmetricFilter():
         self.sigma_range = sigma_range
         self.disable_range = disable_range
         self.disable_angle = disable_angle
+        self.device_type = device_type
 
         # won't need this if disable range
         self.uv_filter = _build_uv_filter(self.sphere.vertices,
                                           self.sigma_angle)
+
         # sigma still controls the width of the filter
         self.nx_filter = _build_nx_filter(self.sphere.vertices, sigma_spatial,
                                           sigma_align, disable_spatial,
-                                          disable_align)
+                                          disable_align, j_invariance)
         logging.info('Filter shape: {}'.format(self.nx_filter.shape[:-1]))
 
         self.B = sh_to_sf_matrix(self.sphere, self.sh_order,
@@ -58,19 +61,26 @@ class AsymmetricFilter():
                                                    else 'false')
         self.cl_kernel.set_define('DISABLE_RANGE', 'true' if self.disable_range
                                                    else 'false')
-        self.cl_manager = CLManager(self.cl_kernel)
+        self.cl_manager = CLManager(self.cl_kernel, self.device_type)
 
     def __call__(self, sh_data, patch_size=40):
+        uv_weights_offsets =\
+            np.append([0.0], np.cumsum(np.count_nonzero(self.uv_filter, axis=-1)))
+        v_indices = np.tile(np.arange(self.uv_filter.shape[1]),
+                            (self.uv_filter.shape[0], 1))[self.uv_filter > 0.0]
+        flat_uv = self.uv_filter[self.uv_filter > 0.0]
+
         # Prepare GPU buffers
         self.cl_manager.add_input_buffer("sf_data")  # SF data not initialized
         self.cl_manager.add_input_buffer("nx_filter", self.nx_filter)
-        self.cl_manager.add_input_buffer("uv_filter", self.uv_filter)
-        self.cl_manager.add_output_buffer('out_sf')  # SF not initialized yet
+        self.cl_manager.add_input_buffer("uv_filter", flat_uv)
+        self.cl_manager.add_input_buffer("uv_weights_offsets", uv_weights_offsets)
+        self.cl_manager.add_input_buffer("v_indices", v_indices)
+        self.cl_manager.add_output_buffer("out_sf")  # SF not initialized yet
 
         win_width = self.nx_filter.shape[0]
         win_hwidth = win_width // 2
         volume_shape = sh_data.shape[:-1]
-        sf_shape = tuple(np.append(volume_shape, len(self.sphere.vertices)))
         padded_volume_shape = tuple(np.asarray(volume_shape) + win_width - 1)
 
         out_sh = np.zeros(np.append(sh_data.shape[:-1], self.B_inv.shape[-1]))
@@ -122,25 +132,20 @@ class AsymmetricFilter():
         return out_sh
 
 
-@njit(cache=True)
 def _build_uv_filter(directions, sigma_angle):
-    directions = np.ascontiguousarray(directions.astype(np.float32))
-    uv_weights = np.zeros((len(directions), len(directions)), dtype=np.float32)
+    dot = directions.dot(directions.T)
+    x = np.arccos(np.clip(dot, -1.0, 1.0))
+    weights = _evaluate_gaussian(sigma_angle, x)
 
-    # 1. precompute weights on angle
-    for u_i, u in enumerate(directions):
-        uvec = np.reshape(np.ascontiguousarray(u), (1, 3))
-        weights = np.arccos(np.clip(np.dot(uvec, directions.T), -1.0, 1.0))
-        weights = _evaluate_gaussian(sigma_angle, weights)
-        weights /= np.sum(weights)
-        uv_weights[u_i] = weights  # each line sums to 1.
-
-    return uv_weights
+    mask = x > (3.0*sigma_angle)
+    weights[mask] = 0.0
+    weights /= np.sum(weights, axis=-1)
+    return weights
 
 
 @njit(cache=True)
-def _build_nx_filter(directions, sigma_spatial, sigma_align,
-                     disable_spatial, disable_align):
+def _build_nx_filter(directions, sigma_spatial, sigma_align, disable_spatial,
+                     disable_align, j_invariance=False):
     directions = np.ascontiguousarray(directions.astype(np.float32))
 
     half_width = int(round(3 * sigma_spatial))
@@ -173,6 +178,11 @@ def _build_nx_filter(directions, sigma_spatial, sigma_align,
 
                 nx_weights[half_width + i, half_width + j, half_width + k] =\
                     w_align * w_spatial
+
+    if j_invariance:
+        # A filter is j-invariant if its prediction does not
+        # depend on the content of the current voxel
+        nx_weights[half_width, half_width, half_width, :] = 0.0
 
     for ui in range(len(directions)):
         w_sum = np.sum(nx_weights[..., ui])

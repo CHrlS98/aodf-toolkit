@@ -9,6 +9,14 @@ import aodf
 import pyopencl as cl
 
 
+def cl_device_type(device_type_str):
+    if device_type_str == 'cpu':
+        return cl.device_type.CPU
+    if device_type_str == 'gpu':
+        return cl.device_type.GPU
+    return -1
+
+
 class CLManager(object):
     """
     Class for managing an OpenCL GPU program.
@@ -25,7 +33,7 @@ class CLManager(object):
     n_outputs: int
         Number of output buffers for the kernel.
     """
-    def __init__(self, cl_kernel):
+    def __init__(self, cl_kernel, device_type='gpu'):
         self.input_buffers = []  # [0] * n_inputs
         self.output_buffers = []  # * n_outputs
 
@@ -39,8 +47,12 @@ class CLManager(object):
         for p in platforms:
             devices = p.get_devices()
             for d in devices:
-                if best_device is None:
-                    best_device = d
+                d_type = d.get_info(cl.device_info.TYPE)
+                if d_type == cl_device_type(device_type) and best_device is None:
+                    best_device = d  # take the first device of right type
+
+        if best_device is None:
+            raise ValueError('No device of type {} found'.format(device_type))
 
         self.context = cl.Context(devices=[best_device])
         self.queue = cl.CommandQueue(self.context)
