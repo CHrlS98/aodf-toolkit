@@ -139,8 +139,6 @@ def _build_uv_filter(directions, sigma_angle):
 
     mask = x > (3.0*sigma_angle)
     weights[mask] = 0.0
-    logging.info('Clipped an avg {} directions from angle filter'
-                 .format(np.mean(np.count_nonzero(mask,axis=-1))))
     weights /= np.sum(weights, axis=-1)
     return weights
 
