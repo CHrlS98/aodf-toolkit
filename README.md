@@ -10,12 +10,17 @@ pip install -e .
 ```
 
 ## Usage
-Once installed, the application can be called from the command line.
+Once installed, the application can be called from the command line:
 ```
 aodf_filter in_sh.nii.gz out_sh.nii.gz
 ```
+For tuning the hyper-parameter values (filter sigmas) to the data, an automatic calibration script is provided:
+```
+aodf_calibrate_filter in_sh.nii.gz calibrate_output.csv
+```
+The script outputs a csv file containing the self-supervised loss associated with different hyper-parameter values.
 
-For a description of possible options, `aodf_filter --help`.
+For a description of available options, use `--help` option.
 
 ## Citing
 The method is described in an article (preprint). The corresponding BibTeX entry is given below.
