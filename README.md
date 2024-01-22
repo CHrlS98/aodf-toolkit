@@ -1,9 +1,9 @@
 # AODF
 
-GPU-accelerated python implementation of ODF filtering algorithm for asymmetric ODF estimation in diffusion MRI.
+GPU-accelerated python implementation of ODF filtering algorithm for asymmetric ODF estimation in diffusion MRI. The method is presented in [Poirier et al. (2024)](https://doi.org/10.1016/j.neuroimage.2024.120516).
 
 ## Installation
-The application can be installed using `pip`. The application is tested with `python 3.10`. We recommend installing the application inside a virtual environment (see python `venv` instructions [here](https://docs.python.org/3/library/venv.html)).
+The application can be installed using `pip`. The application is tested with `python 3.10`. We recommend installing the application inside a virtual environment (see python `venv` instructions [here](https://docs.python.org/3/library/venv.html)). To install, run the following command from the project root:
 
 ```
 pip install -e .
@@ -23,15 +23,16 @@ The script outputs a csv file containing the self-supervised loss associated wit
 For a description of available options, use `--help` option.
 
 ## Citing
-The method is described in an article (preprint). The corresponding BibTeX entry is given below.
+The method is described in a Neuroimage article. The corresponding BibTeX entry is given below.
 ```
-@article{poirier_filtering_2022,
-    author = {Poirier, Charles and Descoteaux, Maxime},
-    title = {Filtering Methods for Asymmetric ODFs: Where and How Asymmetry Occurs in the White Matter},
-    year = {2022},
-    doi = {10.1101/2022.12.18.520881},
-    publisher = {Cold Spring Harbor Laboratory},
-    URL = {https://www.biorxiv.org/content/early/2022/12/19/2022.12.18.520881},
-    journal = {bioRxiv}
+@article{poirier_unified_2024,
+    title = {A unified filtering method for estimating asymmetric orientation distribution functions},
+    journal = {NeuroImage},
+    pages = {120516},
+    year = {2024},
+    issn = {1053-8119},
+    doi = {https://doi.org/10.1016/j.neuroimage.2024.120516},
+    url = {https://www.sciencedirect.com/science/article/pii/S1053811924000119},
+    author = {Charles Poirier and Maxime Descoteaux},
 }
 ```
