@@ -186,7 +186,7 @@ def _build_nx_filter(directions, sigma_spatial, sigma_align, disable_spatial,
 
     for ui in range(len(directions)):
         w_sum = np.sum(nx_weights[..., ui])
-        nx_weights /= w_sum
+        nx_weights[..., ui] /= w_sum
 
     return nx_weights
 
