@@ -8,7 +8,7 @@ GPU-accelerated python implementation of ODF filtering algorithm for asymmetric 
 > [!NOTE]
 >  Filter calibration is not yet available through **Scilpy** but should be integrated in the near future.
 
-For installing `aodf-toolkit`, see [Installation  section](https://github.com/CHrlS98/aodf-toolkit/edit/main/README.md#installation) below.
+For installing `aodf-toolkit`, see [Installation  section](https://github.com/CHrlS98/aodf-toolkit/tree/main?tab=readme-ov-file#installation) below.
 
 ## Citing
 If you use the method, please cite. A BibTeX entry is given below.
